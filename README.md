@@ -1,32 +1,44 @@
 # Apeiron CostEstimation Pro
 
-A fully offline desktop **Software Cost Estimation System** for TechLogix, built with Python, PyQt6, SQLite, and ReportLab.
+A fully offline, desktop-based **Software Cost Estimation System** built for TechLogix. It is engineered with Python, PyQt6, SQLite, and ReportLab to provide a robust, data-driven quoting tool for modern software agencies.
 
-## Features
+## Features & Capabilities
 
-- **Employee Cost Modeling** – Real monthly cost and hourly rate calculation
-- **Effort Estimation** – Module-based labor cost with complexity & app-type multipliers
-- **Stage Distribution** – Automatic cost allocation across project phases
-- **Risk & Buffer** – Maintenance buffer, risk contingency, and profit margin
-- **Maintenance Forecast** – Multi-year projection (1–5 years)
-- **Region-Based Pricing** – Hourly multipliers for India, NA, EU, Asia
-- **Estimated vs Actual** – Variance tracking with PERFECT ESTIMATE detection
-- **Client Proposal PDF** – Professional export hiding internal costs
-- **Audit Trail** – All financial edits are logged
-- **Analytics** – Cost/FP, burn rate, revenue margin, contribution margin
+### Level 1: Core Financial Engine
+
+- **Employee Cost Modeling** – Real monthly cost and hourly rate calculation, factoring in PF, Bonus, Leave, Infra, and Admin percentages.
+- **Effort Estimation** – Module-based labor cost estimation with Complexity and App-Type modifiers.
+- **Stage Distribution** – Automatic cost allocation across project phases (Planning, Design, Development, Testing, Deployment).
+- **Region-Based Pricing** – Variable multipliers for geographic zones (India, NA, EU, Asia).
+- **Client Proposal Export** – Professional PDF generation that hides internal costs and only exposes required client-facing metrics.
+- **Audit Trail** – All financial configuration edits are audited and logged.
+
+### Level 2: Advanced Visualization & Strategy
+
+- **Financial Analytics Dashboard** – Interactive Matplotlib charts tracking stage distribution (Pie), module costs (Bar), variance (Bar), and maintenance forecasting (Line).
+- **Industry Presets** – Rapidly scaffold quotes using predefined module templates (e.g., SME CRM, SaaS MVP, AI Chatbot).
+- **Pricing Psychology** – Four built-in pricing modes (Competitive, Value-Based, Aggressive Bid, Premium Enterprise) to instantly adjust risk constraints and profit margins.
+- **Corporate Branding Engine** – A professional UI with "Deep Blue" and "True Light" themes, SVG-style headers, and clean typographical hierarchy.
+- **SOP Guide** – A detachable graphical Standard Operating Procedure window.
+
+### Level 3: Dynamic System Configuration
+
+- **Database-Driven Architecture** – All configuration maps (Employee Roles, Stack Categories, App Types, Complexities, Pricing Strategies, Presets) are handled dynamically in SQLite.
+- **System Configuration UI** – A dedicated Master Data tab providing complete CRUD control over all multipliers and application parameters.
+- **Live Sync** – Dropdowns and estimation algorithms update in real-time when system models are altered.
 
 ## Requirements
 
 - **OS**: Ubuntu 24.04 (or any Linux with Python 3.11+)
 - **Python**: 3.11+
 
-## Setup
+## Setup & Installation
 
 ```bash
-# 1. Clone or navigate to project directory
+# 1. Clone or navigate to the project directory
 cd apeiron_cost_estimation_pro
 
-# 2. Create virtual environment
+# 2. Create and activate a virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
@@ -37,47 +49,20 @@ pip install -r requirements.txt
 python3 run.py
 ```
 
-## Build Standalone Executable
+## Running the Application
+
+When starting for the first time, the application will automatically create the SQLite database at `~/.apeiron_costpro/costpro.db` and securely seed defaults for the dynamic configuration parameters.
 
 ```bash
-# Ensure venv is activated
-python build.py
-# Executable → dist/ApeironCostEstimationPro
+python3 run.py
 ```
 
 ## Run Tests
 
+The application includes a comprehensive Pytest suite mocking the database to verify financial integrity.
+
 ```bash
-python -m pytest tests/ -v
-```
-
-## Project Structure
-
-```text
-apeiron_cost_estimation_pro/
-├── run.py                  # Entry point
-├── build.py                # PyInstaller build script
-├── requirements.txt        # Dependencies
-├── README.md
-├── app/
-│   ├── __init__.py         # App metadata
-│   ├── models.py           # SQLAlchemy ORM models
-│   ├── database.py         # DB engine, session, init
-│   ├── logic.py            # Layer 1 – Financial engine
-│   ├── proposal_generator.py  # Layer 2 – PDF proposal
-│   └── main_ui.py          # PyQt6 UI (4 tabs)
-├── assets/                 # Branding assets (optional)
-└── tests/
-    ├── __init__.py
-    └── test_logic.py       # Unit tests for financial formulas
-```
-
-## Database
-
-SQLite database is auto-created at:
-
-```text
-~/.apeiron_costpro/costpro.db
+python3 -m pytest tests/ -v
 ```
 
 ## License
