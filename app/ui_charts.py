@@ -17,7 +17,7 @@ def create_stage_pie_chart(stage_distribution: dict, theme: dict) -> FigureCanva
 
     labels = list(stage_distribution.keys())
     values = list(stage_distribution.values())
-    colors = ["#5b6abf", "#3ddc84", "#f0a030", "#e05260", "#8e8ea0"]
+    colors = theme.get("chart_palette", ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"])
 
     wedges, texts, autotexts = ax.pie(
         values, labels=labels, autopct="%1.1f%%",
@@ -41,7 +41,7 @@ def create_variance_bar_chart(estimated: float, actual: float, theme: dict) -> F
 
     bars = ax.bar(
         ["Estimated", "Actual"], [estimated, actual],
-        color=["#5b6abf", "#3ddc84"], width=0.5, edgecolor="none",
+        color=[theme.get("accent", "#3B82F6"), theme.get("success", "#10B981")], width=0.5, edgecolor="none",
     )
     ax.set_title("Estimated vs Actual", color=theme["chart_text"], fontsize=11, fontweight="bold")
     ax.tick_params(colors=theme["chart_text"])
@@ -69,8 +69,8 @@ def create_maintenance_line_chart(forecast: list, theme: dict) -> FigureCanvas:
     annual = [f["annual_cost"] for f in forecast]
     cumulative = [f["cumulative_cost"] for f in forecast]
 
-    ax.plot(years, annual, "o-", color="#5b6abf", label="Annual", linewidth=2, markersize=6)
-    ax.plot(years, cumulative, "s--", color="#f0a030", label="Cumulative", linewidth=2, markersize=6)
+    ax.plot(years, annual, "o-", color=theme.get("accent", "#3B82F6"), label="Annual", linewidth=2, markersize=6)
+    ax.plot(years, cumulative, "s--", color=theme.get("warning", "#F59E0B"), label="Cumulative", linewidth=2, markersize=6)
 
     ax.set_title("Maintenance Forecast", color=theme["chart_text"], fontsize=11, fontweight="bold")
     ax.set_xlabel("Year", color=theme["chart_text"], fontsize=9)
@@ -95,8 +95,7 @@ def create_module_cost_bar_chart(module_costs: list, theme: dict) -> FigureCanva
 
     names = [m["name"][:20] for m in module_costs]
     costs = [m["cost"] for m in module_costs]
-    colors = ["#5b6abf", "#3ddc84", "#f0a030", "#e05260", "#8e8ea0",
-              "#6c5ce7", "#00b894", "#fdcb6e", "#e17055", "#636e72"]
+    colors = theme.get("chart_palette", ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#0EA5E9", "#EC4899", "#14B8A6"])
 
     ax.barh(names, costs, color=colors[:len(names)], height=0.6)
     ax.set_title("Cost by Module", color=theme["chart_text"], fontsize=11, fontweight="bold")

@@ -276,6 +276,87 @@ class MaintenanceRecord(Base):
 
 
 # ──────────────────────────────────────────────
+# SYSTEM DYNAMIC CONFIGURATION
+# ──────────────────────────────────────────────
+class SystemLookup(Base):
+    """Dynamic lists for UI dropdowns (Roles, Categories, etc)."""
+    __tablename__ = "system_lookup"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    category = Column(String(50), nullable=False)  # e.g., 'role', 'infra_category', 'stack_category', 'billing_type'
+    value = Column(String(100), nullable=False)
+
+    def __repr__(self):
+        return f"<Lookup {self.category}: {self.value}>"
+
+
+class AppTypeMultiplier(Base):
+    """Multipliers for different kinds of applications."""
+    __tablename__ = "app_type_multipliers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False, unique=True)
+    multiplier = Column(Float, nullable=False, default=1.0)
+    
+    def __repr__(self):
+        return f"<AppType {self.name} ×{self.multiplier}>"
+
+
+class ComplexityMultiplier(Base):
+    """Multipliers for different architectural complexities."""
+    __tablename__ = "complexity_multipliers"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False, unique=True)
+    multiplier = Column(Float, nullable=False, default=1.0)
+
+    def __repr__(self):
+        return f"<Complexity {self.name} ×{self.multiplier}>"
+
+
+class PricingStrategy(Base):
+    """Configurable Pricing Psychology modes."""
+    __tablename__ = "pricing_strategies"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(50), nullable=False, unique=True)
+    profit_margin_pct = Column(Float, nullable=False, default=20.0)
+    risk_contingency_pct = Column(Float, nullable=False, default=10.0)
+    description = Column(String(200), default="")
+
+    def __repr__(self):
+        return f"<Pricing {self.name}>"
+
+
+class IndustryPreset(Base):
+    """Groups of predefined modules for fast estimation."""
+    __tablename__ = "industry_presets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=False, unique=True)
+    
+    modules = relationship("IndustryPresetModule", back_populates="preset", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Preset {self.name}>"
+
+
+class IndustryPresetModule(Base):
+    """Individual modules inside a preset template."""
+    __tablename__ = "industry_preset_modules"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    preset_id = Column(Integer, ForeignKey("industry_presets.id"), nullable=False)
+    name = Column(String(200), nullable=False)
+    default_hours = Column(Float, default=0.0)
+
+    preset = relationship("IndustryPreset", back_populates="modules")
+
+    def __repr__(self):
+        return f"<PresetModule {self.name} | {self.default_hours}h>"
+
+
+# ──────────────────────────────────────────────
 # AUDIT LOG
 # ──────────────────────────────────────────────
 class AuditLog(Base):

@@ -27,8 +27,6 @@ from app.logic import (
     contribution_margin,
     format_inr,
     run_full_estimation,
-    INDUSTRY_PRESETS,
-    PRICING_MODES,
 )
 
 
@@ -65,19 +63,33 @@ class TestEmployeeCost:
 # COMPLEXITY & APP TYPE
 # ──────────────────────────────────────────────
 class TestMultipliers:
+    def _mock_session(self, multiplier_value):
+        session = MagicMock()
+        query = MagicMock()
+        record = MagicMock()
+        record.multiplier = multiplier_value
+        session.query.return_value = query
+        query.filter_by.return_value = query
+        query.first.return_value = record
+        return session
+
     def test_complexity_known(self):
-        assert get_complexity_multiplier("Simple") == 0.8
-        assert get_complexity_multiplier("Enterprise") == 1.6
+        session = self._mock_session(0.8)
+        assert get_complexity_multiplier(session, "Simple") == 0.8
 
     def test_complexity_unknown(self):
-        assert get_complexity_multiplier("Unknown") == 1.0
+        session = MagicMock()
+        session.query().filter_by().first.return_value = None
+        assert get_complexity_multiplier(session, "Unknown") == 1.0
 
     def test_app_type_known(self):
-        assert get_app_type_adjustment("AI") == 1.35
-        assert get_app_type_adjustment("Education") == 0.95
+        session = self._mock_session(1.35)
+        assert get_app_type_adjustment(session, "AI") == 1.35
 
     def test_app_type_unknown(self):
-        assert get_app_type_adjustment("Unknown") == 1.0
+        session = MagicMock()
+        session.query().filter_by().first.return_value = None
+        assert get_app_type_adjustment(session, "Unknown") == 1.0
 
 
 # ──────────────────────────────────────────────
@@ -113,17 +125,33 @@ class TestLaborCost:
         cost = calculate_module_cost(mod)
         assert cost == 50000.0
 
+    def _mock_session(self, cx_mult, app_mult):
+        session = MagicMock()
+        def side_effect(model):
+            q = MagicMock()
+            rec = MagicMock()
+            if model.__name__ == 'ComplexityMultiplier':
+                rec.multiplier = cx_mult
+            else:
+                rec.multiplier = app_mult
+            q.filter_by.return_value.first.return_value = rec
+            return q
+        session.query.side_effect = side_effect
+        return session
+
     def test_total_labor_cost(self):
         m1 = self._mock_module("A", 100, 500)
         m2 = self._mock_module("B", 200, 300)
-        result = calculate_total_labor_cost([m1, m2], "Medium", "Productivity")
+        session = self._mock_session(1.0, 1.0)
+        result = calculate_total_labor_cost(session, [m1, m2], "Medium", "Productivity")
         # raw = 50000 + 60000 = 110000, cx=1.0, app=1.0
         assert result["raw_labor_total"] == 110000.0
         assert result["adjusted_labor_total"] == 110000.0
 
     def test_total_labor_cost_complex_ai(self):
         m1 = self._mock_module("A", 100, 500)
-        result = calculate_total_labor_cost([m1], "Complex", "AI")
+        session = self._mock_session(1.3, 1.35)
+        result = calculate_total_labor_cost(session, [m1], "Complex", "AI")
         # raw = 50000, cx=1.3, app=1.35 → 50000 * 1.3 * 1.35 = 87750
         assert result["adjusted_labor_total"] == pytest.approx(87750.0)
 
@@ -300,7 +328,17 @@ class TestFullEstimation:
         mod.employee = emp
         mod.cost = 0
 
+        session = MagicMock()
+        def side_effect(model):
+            q = MagicMock()
+            rec = MagicMock()
+            rec.multiplier = 1.0
+            q.filter_by.return_value.first.return_value = rec
+            return q
+        session.query.side_effect = side_effect
+        
         result = run_full_estimation(
+            session=session,
             modules=[mod],
             complexity="Medium",
             app_type="Productivity",
@@ -322,40 +360,4 @@ class TestFullEstimation:
         assert result["analytics"]["person_months"] > 0
 
 
-# ──────────────────────────────────────────────
-# INDUSTRY PRESETS
-# ──────────────────────────────────────────────
-class TestIndustryPresets:
-    def test_all_presets_have_modules(self):
-        for key, preset in INDUSTRY_PRESETS.items():
-            assert "modules" in preset, f"{key} missing modules"
-            assert len(preset["modules"]) > 0, f"{key} has no modules"
-            for m in preset["modules"]:
-                assert "name" in m and "hours" in m
 
-    def test_preset_app_types_valid(self):
-        from app.logic import APP_TYPE_ADJUSTMENTS
-        for key, preset in INDUSTRY_PRESETS.items():
-            assert preset["app_type"] in APP_TYPE_ADJUSTMENTS
-
-    def test_preset_complexity_valid(self):
-        from app.logic import COMPLEXITY_MULTIPLIERS
-        for key, preset in INDUSTRY_PRESETS.items():
-            assert preset["complexity"] in COMPLEXITY_MULTIPLIERS
-
-
-# ──────────────────────────────────────────────
-# PRICING MODES
-# ──────────────────────────────────────────────
-class TestPricingModes:
-    def test_all_modes_have_fields(self):
-        for key, mode in PRICING_MODES.items():
-            assert "profit_pct" in mode
-            assert "risk_pct" in mode
-            assert "maintenance_buffer_pct" in mode
-
-    def test_aggressive_cheapest(self):
-        assert PRICING_MODES["Aggressive Bid"]["profit_pct"] < PRICING_MODES["Value-Based"]["profit_pct"]
-
-    def test_premium_most_expensive(self):
-        assert PRICING_MODES["Premium Enterprise"]["profit_pct"] > PRICING_MODES["Competitive"]["profit_pct"]

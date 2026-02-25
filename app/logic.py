@@ -12,27 +12,8 @@ from app.models import (
 )
 
 # ──────────────────────────────────────────────
-# CONSTANTS
+# CONSTANTS & DEFAULTS
 # ──────────────────────────────────────────────
-COMPLEXITY_MULTIPLIERS = {
-    "Simple": 0.8,
-    "Medium": 1.0,
-    "Complex": 1.3,
-    "Enterprise": 1.6,
-}
-
-APP_TYPE_ADJUSTMENTS = {
-    "Social Media": 1.1,
-    "E-commerce": 1.15,
-    "Gaming": 1.25,
-    "Education": 0.95,
-    "Healthcare": 1.2,
-    "Travel": 1.05,
-    "Productivity": 1.0,
-    "On-demand": 1.1,
-    "AI": 1.35,
-}
-
 DEFAULT_STAGES = {
     "Planning": 10.0,
     "Design": 15.0,
@@ -46,120 +27,6 @@ VARIANCE_THRESHOLDS = {
     "Controlled": 10.0,
     "Moderate": 20.0,
     # Anything above 20% is "High Risk"
-}
-
-# ──────────────────────────────────────────────
-# INDUSTRY PRESETS
-# ──────────────────────────────────────────────
-INDUSTRY_PRESETS = {
-    "SME CRM": {
-        "app_type": "Productivity",
-        "complexity": "Medium",
-        "modules": [
-            {"name": "User Management & Auth", "hours": 80},
-            {"name": "Dashboard & Analytics", "hours": 100},
-            {"name": "Contact Management", "hours": 80},
-            {"name": "Reports & Export", "hours": 60},
-            {"name": "Settings & Configuration", "hours": 40},
-            {"name": "Notifications", "hours": 40},
-            {"name": "API Integration Layer", "hours": 80},
-        ],
-    },
-    "Industrial Compliance": {
-        "app_type": "Healthcare",
-        "complexity": "Complex",
-        "modules": [
-            {"name": "Audit Log Engine", "hours": 120},
-            {"name": "Compliance Rule Engine", "hours": 160},
-            {"name": "Document Management", "hours": 100},
-            {"name": "Reporting & Dashboards", "hours": 80},
-            {"name": "User & Role Management", "hours": 60},
-            {"name": "Alert & Notification System", "hours": 60},
-            {"name": "Integration & API Layer", "hours": 60},
-        ],
-    },
-    "Logistics Platform": {
-        "app_type": "On-demand",
-        "complexity": "Complex",
-        "modules": [
-            {"name": "Fleet Management", "hours": 140},
-            {"name": "Route Optimization", "hours": 120},
-            {"name": "Real-time Tracking", "hours": 100},
-            {"name": "Invoicing & Billing", "hours": 80},
-            {"name": "Warehouse Management", "hours": 100},
-            {"name": "Driver App Module", "hours": 80},
-            {"name": "Admin Dashboard", "hours": 100},
-        ],
-    },
-    "AI Chatbot": {
-        "app_type": "AI",
-        "complexity": "Complex",
-        "modules": [
-            {"name": "NLP Processing Engine", "hours": 160},
-            {"name": "Training Data Pipeline", "hours": 120},
-            {"name": "Chat UI & Widget", "hours": 80},
-            {"name": "Analytics & Insights", "hours": 80},
-            {"name": "Integration APIs", "hours": 60},
-            {"name": "Admin & Config Panel", "hours": 60},
-        ],
-    },
-    "E-commerce Standard": {
-        "app_type": "E-commerce",
-        "complexity": "Medium",
-        "modules": [
-            {"name": "Product Catalog", "hours": 100},
-            {"name": "Shopping Cart & Checkout", "hours": 80},
-            {"name": "Payment Gateway", "hours": 80},
-            {"name": "Order Management", "hours": 80},
-            {"name": "Admin Dashboard", "hours": 80},
-            {"name": "User Accounts & Reviews", "hours": 60},
-            {"name": "Search & Filters", "hours": 60},
-            {"name": "Inventory Management", "hours": 60},
-        ],
-    },
-    "SaaS MVP": {
-        "app_type": "Productivity",
-        "complexity": "Simple",
-        "modules": [
-            {"name": "Auth & Onboarding", "hours": 60},
-            {"name": "Core Dashboard", "hours": 80},
-            {"name": "Subscription & Billing", "hours": 80},
-            {"name": "REST API Layer", "hours": 60},
-            {"name": "Landing Page & Docs", "hours": 40},
-            {"name": "Settings & Profile", "hours": 40},
-            {"name": "Admin Panel", "hours": 40},
-        ],
-    },
-}
-
-# ──────────────────────────────────────────────
-# PRICING PSYCHOLOGY MODES
-# ──────────────────────────────────────────────
-PRICING_MODES = {
-    "Competitive": {
-        "description": "Win on price – lean margins",
-        "profit_pct": 10.0,
-        "risk_pct": 5.0,
-        "maintenance_buffer_pct": 10.0,
-    },
-    "Value-Based": {
-        "description": "Balanced cost & perceived value",
-        "profit_pct": 25.0,
-        "risk_pct": 10.0,
-        "maintenance_buffer_pct": 15.0,
-    },
-    "Aggressive Bid": {
-        "description": "Near-cost pricing to win deal",
-        "profit_pct": 5.0,
-        "risk_pct": 5.0,
-        "maintenance_buffer_pct": 8.0,
-    },
-    "Premium Enterprise": {
-        "description": "High-touch premium positioning",
-        "profit_pct": 40.0,
-        "risk_pct": 15.0,
-        "maintenance_buffer_pct": 20.0,
-    },
 }
 
 
@@ -201,14 +68,24 @@ def compute_hourly_from_salary(
 # ──────────────────────────────────────────────
 # EFFORT & LABOR COST
 # ──────────────────────────────────────────────
-def get_complexity_multiplier(complexity: str) -> float:
-    """Return the baseline effort multiplier for given complexity."""
-    return COMPLEXITY_MULTIPLIERS.get(complexity, 1.0)
+def get_complexity_multiplier(session, complexity: str) -> float:
+    """Return the baseline effort multiplier for given complexity from DB."""
+    if session:
+        from app.models import ComplexityMultiplier
+        rec = session.query(ComplexityMultiplier).filter_by(name=complexity).first()
+        if rec:
+            return rec.multiplier
+    return 1.0
 
 
-def get_app_type_adjustment(app_type: str) -> float:
-    """Return the app-type effort adjustment factor."""
-    return APP_TYPE_ADJUSTMENTS.get(app_type, 1.0)
+def get_app_type_adjustment(session, app_type: str) -> float:
+    """Return the app-type effort adjustment factor from DB."""
+    if session:
+        from app.models import AppTypeMultiplier
+        rec = session.query(AppTypeMultiplier).filter_by(name=app_type).first()
+        if rec:
+            return rec.multiplier
+    return 1.0
 
 
 def calculate_module_cost(module: ProjectModule, region_multiplier: float = 1.0) -> float:
@@ -228,6 +105,7 @@ def calculate_module_cost(module: ProjectModule, region_multiplier: float = 1.0)
 
 
 def calculate_total_labor_cost(
+    session,
     modules: list,
     complexity: str = "Medium",
     app_type: str = "Productivity",
@@ -244,8 +122,8 @@ def calculate_total_labor_cost(
         module_costs.append({"name": mod.name, "hours": mod.estimated_hours, "cost": mc})
         raw_total += mc
 
-    cx_mult = get_complexity_multiplier(complexity)
-    app_adj = get_app_type_adjustment(app_type)
+    cx_mult = get_complexity_multiplier(session, complexity)
+    app_adj = get_app_type_adjustment(session, app_type)
     adjusted_total = round(raw_total * cx_mult * app_adj, 2)
 
     return {
@@ -450,6 +328,7 @@ def contribution_margin(final_price: float, variable_cost: float) -> float:
 # FULL PROJECT ESTIMATION (ORCHESTRATOR)
 # ──────────────────────────────────────────────
 def run_full_estimation(
+    session,
     modules: list,
     complexity: str,
     app_type: str,
@@ -469,7 +348,7 @@ def run_full_estimation(
     Run the complete estimation pipeline and return all results.
     """
     # 1. Labor
-    labor = calculate_total_labor_cost(modules, complexity, app_type, region_multiplier)
+    labor = calculate_total_labor_cost(session, modules, complexity, app_type, region_multiplier)
 
     # 2. Infra + Stack
     infra_stack = calculate_infra_stack_total(infra_items, stack_items)
