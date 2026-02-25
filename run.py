@@ -18,7 +18,7 @@ def main():
 
     app = QApplication(sys.argv)
     app.setApplicationName("Apeiron CostEstimation Pro")
-    app.setOrganizationName("TechLogix")
+    app.setOrganizationName("Koinonia Technologies")
     app.setStyleSheet(build_stylesheet("dark"))
 
     window = MainWindow()

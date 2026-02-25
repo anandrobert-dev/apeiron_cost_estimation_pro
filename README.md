@@ -1,6 +1,6 @@
 # Apeiron CostEstimation Pro
 
-A fully offline, desktop-based **Software Cost Estimation System** built for TechLogix. It is engineered with Python, PyQt6, SQLite, and ReportLab to provide a robust, data-driven quoting tool for modern software agencies.
+A fully offline, desktop-based **Software Cost Estimation System** developed by Koinonia Technologies (prepared for use by TechLogix). The Apeiron product suite is proprietary to Koinonia Technologies. It is engineered with Python, PyQt6, SQLite, and ReportLab to provide a robust, data-driven quoting tool for modern software agencies.
 
 ## Features & Capabilities
 
@@ -67,4 +67,4 @@ python3 -m pytest tests/ -v
 
 ## License
 
-Proprietary – TechLogix
+Proprietary – Koinonia Technologies

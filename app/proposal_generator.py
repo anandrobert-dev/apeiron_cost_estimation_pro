@@ -131,7 +131,7 @@ def _footer(canvas, doc):
     canvas.setFillColor(TEXT_MUTED)
     canvas.drawCentredString(
         A4[0] / 2, 15 * mm,
-        f"Confidential – TechLogix | Generated on {datetime.now().strftime('%d %b %Y')} | Page {doc.page}"
+        f"Confidential – Apeiron CostEstimation Pro © Koinonia Technologies | Generated on {datetime.now().strftime('%d %b %Y')} | Page {doc.page}"
     )
     canvas.restoreState()
 
@@ -173,7 +173,7 @@ def generate_proposal_pdf(
 
     # ── COVER PAGE ──
     story.append(Spacer(1, 40 * mm))
-    story.append(Paragraph("TechLogix", styles["CoverSubtitle"]))
+    story.append(Paragraph("Prepared for: TechLogix (Powered by Apeiron / Koinonia Technologies)", styles["CoverSubtitle"]))
     story.append(Spacer(1, 10 * mm))
     story.append(Paragraph("Project Cost Proposal", styles["CoverTitle"]))
     story.append(Spacer(1, 6 * mm))
