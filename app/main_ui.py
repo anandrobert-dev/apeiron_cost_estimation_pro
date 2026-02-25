@@ -102,6 +102,12 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self._build_analysis_tab(), "Analysis")
         self.tabs.addTab(self._build_proposal_tab(), "Proposal Export")
         ml.addWidget(self.tabs)
+        
+        footer = QLabel("© 2026 Koinonia Technologies. All rights reserved.\nProprietary Software | Independent Development")
+        footer.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        footer.setStyleSheet("color: #757575; font-size: 11px; padding: 4px;")
+        ml.addWidget(footer)
+
         self.statusBar().showMessage("Ready")
         self._refresh_all()
 
