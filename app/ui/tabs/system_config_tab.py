@@ -1,14 +1,30 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, 
-    QScrollArea, QGroupBox, QLineEdit, QComboBox, 
-    QDoubleSpinBox, QPushButton, QTableWidget, 
-    QTableWidgetItem, QAbstractItemView, QMessageBox
+    QWidget,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFormLayout,
+    QScrollArea,
+    QGroupBox,
+    QLineEdit,
+    QComboBox,
+    QDoubleSpinBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QAbstractItemView,
+    QMessageBox,
+    QHeaderView,
 )
 from PyQt6.QtCore import Qt
 
-from app.models import (
-    SystemLookup, AppTypeMultiplier, ComplexityMultiplier, PricingStrategy, IndustryPreset
+from app.persistence.models import (
+    SystemLookup,
+    AppTypeMultiplier,
+    ComplexityMultiplier,
+    PricingStrategy,
+    IndustryPreset,
 )
+
 
 class SysConfigTab(QWidget):
     def __init__(self, main_window):
@@ -29,19 +45,30 @@ class SysConfigTab(QWidget):
         lg = QGroupBox("Dynamic Lookups (Roles, Categories)")
         lgl = QFormLayout(lg)
         self.lookup_cat = QComboBox()
-        self.lookup_cat.addItems(["role", "infra_category", "stack_category", "billing_type"])
+        self.lookup_cat.addItems(
+            ["role", "infra_category", "stack_category", "billing_type"]
+        )
         self.lookup_val = QLineEdit()
         l_btn = QPushButton("Add Lookup")
         l_btn.clicked.connect(self._add_sys_lookup)
         lgl.addRow("Category:", self.lookup_cat)
         lgl.addRow("Value:", self.lookup_val)
         lgl.addRow("", l_btn)
-        
-        self.lookup_table = QTableWidget(); self.lookup_table.setColumnCount(3)
+
+        self.lookup_table = QTableWidget()
+        self.lookup_table.setColumnCount(3)
         self.lookup_table.setHorizontalHeaderLabels(["ID", "Category", "Value"])
-        self.lookup_table.horizontalHeader().setStretchLastSection(True)
-        self.lookup_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        ld_btn = QPushButton("Delete Selected"); ld_btn.setProperty("cssClass", "danger"); ld_btn.clicked.connect(self._del_sys_lookup)
+        self.lookup_table.horizontalHeader().setStretchLastSection(False)
+        self.lookup_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.lookup_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.lookup_table.setMinimumHeight(200)
+        ld_btn = QPushButton("Delete Selected")
+        ld_btn.setProperty("cssClass", "danger")
+        ld_btn.clicked.connect(self._del_sys_lookup)
         lgl.addRow(self.lookup_table)
         lgl.addRow("", ld_btn)
         sl.addWidget(lg)
@@ -50,18 +77,29 @@ class SysConfigTab(QWidget):
         ag = QGroupBox("App Type Multipliers")
         agl = QFormLayout(ag)
         self.app_name = QLineEdit()
-        self.app_mult = QDoubleSpinBox(); self.app_mult.setRange(0.1, 10.0); self.app_mult.setSingleStep(0.1)
+        self.app_mult = QDoubleSpinBox()
+        self.app_mult.setRange(0.1, 10.0)
+        self.app_mult.setSingleStep(0.1)
         a_btn = QPushButton("Add App Type")
         a_btn.clicked.connect(self._add_app_type)
         agl.addRow("Name:", self.app_name)
         agl.addRow("Multiplier:", self.app_mult)
         agl.addRow("", a_btn)
 
-        self.app_table = QTableWidget(); self.app_table.setColumnCount(3)
+        self.app_table = QTableWidget()
+        self.app_table.setColumnCount(3)
         self.app_table.setHorizontalHeaderLabels(["ID", "Name", "Multiplier"])
-        self.app_table.horizontalHeader().setStretchLastSection(True)
-        self.app_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        ad_btn = QPushButton("Delete Selected"); ad_btn.setProperty("cssClass", "danger"); ad_btn.clicked.connect(self._del_app_type)
+        self.app_table.horizontalHeader().setStretchLastSection(False)
+        self.app_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.app_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.app_table.setMinimumHeight(200)
+        ad_btn = QPushButton("Delete Selected")
+        ad_btn.setProperty("cssClass", "danger")
+        ad_btn.clicked.connect(self._del_app_type)
         agl.addRow(self.app_table)
         agl.addRow("", ad_btn)
         sl.addWidget(ag)
@@ -70,29 +108,42 @@ class SysConfigTab(QWidget):
         cg = QGroupBox("Complexity Multipliers")
         cgl = QFormLayout(cg)
         self.cx_name = QLineEdit()
-        self.cx_mult = QDoubleSpinBox(); self.cx_mult.setRange(0.1, 10.0); self.cx_mult.setSingleStep(0.1)
+        self.cx_mult = QDoubleSpinBox()
+        self.cx_mult.setRange(0.1, 10.0)
+        self.cx_mult.setSingleStep(0.1)
         c_btn = QPushButton("Add Complexity")
         c_btn.clicked.connect(self._add_complexity)
         cgl.addRow("Name:", self.cx_name)
         cgl.addRow("Multiplier:", self.cx_mult)
         cgl.addRow("", c_btn)
 
-        self.cx_table = QTableWidget(); self.cx_table.setColumnCount(3)
+        self.cx_table = QTableWidget()
+        self.cx_table.setColumnCount(3)
         self.cx_table.setHorizontalHeaderLabels(["ID", "Name", "Multiplier"])
-        self.cx_table.horizontalHeader().setStretchLastSection(True)
-        self.cx_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        cd_btn = QPushButton("Delete Selected"); cd_btn.setProperty("cssClass", "danger"); cd_btn.clicked.connect(self._del_complexity)
+        self.cx_table.horizontalHeader().setStretchLastSection(False)
+        self.cx_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.cx_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.cx_table.setMinimumHeight(200)
+        cd_btn = QPushButton("Delete Selected")
+        cd_btn.setProperty("cssClass", "danger")
+        cd_btn.clicked.connect(self._del_complexity)
         cgl.addRow(self.cx_table)
         cgl.addRow("", cd_btn)
         sl.addWidget(cg)
-        
+
         # 4. Pricing Strategies
         pg = QGroupBox("Pricing Strategies")
         pgl = QFormLayout(pg)
         self.ps_name = QLineEdit()
         self.ps_desc = QLineEdit()
-        self.ps_prof = QDoubleSpinBox(); self.ps_prof.setRange(0, 100)
-        self.ps_risk = QDoubleSpinBox(); self.ps_risk.setRange(0, 100)
+        self.ps_prof = QDoubleSpinBox()
+        self.ps_prof.setRange(0, 100)
+        self.ps_risk = QDoubleSpinBox()
+        self.ps_risk.setRange(0, 100)
         p_btn = QPushButton("Add Pricing Strategy")
         p_btn.clicked.connect(self._add_pricing)
         pgl.addRow("Name:", self.ps_name)
@@ -101,11 +152,22 @@ class SysConfigTab(QWidget):
         pgl.addRow("Risk %:", self.ps_risk)
         pgl.addRow("", p_btn)
 
-        self.ps_table = QTableWidget(); self.ps_table.setColumnCount(5)
-        self.ps_table.setHorizontalHeaderLabels(["ID", "Name", "Profit%", "Risk%", "Desc"])
-        self.ps_table.horizontalHeader().setStretchLastSection(True)
-        self.ps_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        pd_btn = QPushButton("Delete Selected"); pd_btn.setProperty("cssClass", "danger"); pd_btn.clicked.connect(self._del_pricing)
+        self.ps_table = QTableWidget()
+        self.ps_table.setColumnCount(5)
+        self.ps_table.setHorizontalHeaderLabels(
+            ["ID", "Name", "Profit%", "Risk%", "Desc"]
+        )
+        self.ps_table.horizontalHeader().setStretchLastSection(False)
+        self.ps_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.ps_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.ps_table.setMinimumHeight(200)
+        pd_btn = QPushButton("Delete Selected")
+        pd_btn.setProperty("cssClass", "danger")
+        pd_btn.clicked.connect(self._del_pricing)
         pgl.addRow(self.ps_table)
         pgl.addRow("", pd_btn)
         sl.addWidget(pg)
@@ -119,11 +181,20 @@ class SysConfigTab(QWidget):
         ipgl.addRow("Name:", self.ip_name)
         ipgl.addRow("", ip_btn)
 
-        self.ip_table = QTableWidget(); self.ip_table.setColumnCount(2)
+        self.ip_table = QTableWidget()
+        self.ip_table.setColumnCount(2)
         self.ip_table.setHorizontalHeaderLabels(["ID", "Name"])
-        self.ip_table.horizontalHeader().setStretchLastSection(True)
-        self.ip_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        ipd_btn = QPushButton("Delete Selected"); ipd_btn.setProperty("cssClass", "danger"); ipd_btn.clicked.connect(self._del_preset)
+        self.ip_table.horizontalHeader().setStretchLastSection(False)
+        self.ip_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.ip_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.ip_table.setMinimumHeight(200)
+        ipd_btn = QPushButton("Delete Selected")
+        ipd_btn.setProperty("cssClass", "danger")
+        ipd_btn.clicked.connect(self._del_preset)
         ipgl.addRow(self.ip_table)
         ipgl.addRow("", ipd_btn)
         sl.addWidget(ipg)
@@ -137,7 +208,7 @@ class SysConfigTab(QWidget):
         self._refresh_cx_table()
         self._refresh_ps_table()
         self._refresh_ip_table()
-        
+
     def _refresh_lookup_table(self):
         items = self.session.query(SystemLookup).all()
         self.lookup_table.setRowCount(len(items))
@@ -146,7 +217,8 @@ class SysConfigTab(QWidget):
             self.lookup_table.setItem(i, 1, QTableWidgetItem(item.category))
             self.lookup_table.setItem(i, 2, QTableWidgetItem(item.value))
         self.lookup_table.resizeColumnsToContents()
-        
+        self.lookup_table.resizeRowsToContents()
+
     def _refresh_app_table(self):
         items = self.session.query(AppTypeMultiplier).all()
         self.app_table.setRowCount(len(items))
@@ -155,6 +227,7 @@ class SysConfigTab(QWidget):
             self.app_table.setItem(i, 1, QTableWidgetItem(item.name))
             self.app_table.setItem(i, 2, QTableWidgetItem(str(item.multiplier)))
         self.app_table.resizeColumnsToContents()
+        self.app_table.resizeRowsToContents()
 
     def _refresh_cx_table(self):
         items = self.session.query(ComplexityMultiplier).all()
@@ -164,6 +237,7 @@ class SysConfigTab(QWidget):
             self.cx_table.setItem(i, 1, QTableWidgetItem(item.name))
             self.cx_table.setItem(i, 2, QTableWidgetItem(str(item.multiplier)))
         self.cx_table.resizeColumnsToContents()
+        self.cx_table.resizeRowsToContents()
 
     def _refresh_ps_table(self):
         items = self.session.query(PricingStrategy).all()
@@ -172,9 +246,12 @@ class SysConfigTab(QWidget):
             self.ps_table.setItem(i, 0, QTableWidgetItem(str(item.id)))
             self.ps_table.setItem(i, 1, QTableWidgetItem(item.name))
             self.ps_table.setItem(i, 2, QTableWidgetItem(str(item.profit_margin_pct)))
-            self.ps_table.setItem(i, 3, QTableWidgetItem(str(item.risk_contingency_pct)))
+            self.ps_table.setItem(
+                i, 3, QTableWidgetItem(str(item.risk_contingency_pct))
+            )
             self.ps_table.setItem(i, 4, QTableWidgetItem(item.description))
         self.ps_table.resizeColumnsToContents()
+        self.ps_table.resizeRowsToContents()
 
     def _refresh_ip_table(self):
         items = self.session.query(IndustryPreset).all()
@@ -183,6 +260,7 @@ class SysConfigTab(QWidget):
             self.ip_table.setItem(i, 0, QTableWidgetItem(str(item.id)))
             self.ip_table.setItem(i, 1, QTableWidgetItem(item.name))
         self.ip_table.resizeColumnsToContents()
+        self.ip_table.resizeRowsToContents()
 
     # --- CRUD ACTIONS ---
 
@@ -200,7 +278,8 @@ class SysConfigTab(QWidget):
 
     def _del_sys_lookup(self):
         r = self.lookup_table.currentRow()
-        if r < 0: return
+        if r < 0:
+            return
         item_id = int(self.lookup_table.item(r, 0).text())
         item = self.session.query(SystemLookup).get(item_id)
         if item:
@@ -211,69 +290,109 @@ class SysConfigTab(QWidget):
 
     def _add_app_type(self):
         name = self.app_name.text().strip()
-        if not name: return
+        if not name:
+            return
         item = AppTypeMultiplier(name=name, multiplier=self.app_mult.value())
-        self.session.add(item); self.session.commit()
-        self.app_name.clear(); self.app_mult.setValue(1.0)
-        self._refresh_app_table(); self._sync_main_ui()
+        self.session.add(item)
+        self.session.commit()
+        self.app_name.clear()
+        self.app_mult.setValue(1.0)
+        self._refresh_app_table()
+        self._sync_main_ui()
 
     def _del_app_type(self):
         r = self.app_table.currentRow()
-        if r < 0: return
-        item = self.session.query(AppTypeMultiplier).get(int(self.app_table.item(r, 0).text()))
+        if r < 0:
+            return
+        item = self.session.query(AppTypeMultiplier).get(
+            int(self.app_table.item(r, 0).text())
+        )
         if item:
-            self.session.delete(item); self.session.commit()
-            self._refresh_app_table(); self._sync_main_ui()
+            self.session.delete(item)
+            self.session.commit()
+            self._refresh_app_table()
+            self._sync_main_ui()
 
     def _add_complexity(self):
         name = self.cx_name.text().strip()
-        if not name: return
+        if not name:
+            return
         item = ComplexityMultiplier(name=name, multiplier=self.cx_mult.value())
-        self.session.add(item); self.session.commit()
-        self.cx_name.clear(); self.cx_mult.setValue(1.0)
-        self._refresh_cx_table(); self._sync_main_ui()
+        self.session.add(item)
+        self.session.commit()
+        self.cx_name.clear()
+        self.cx_mult.setValue(1.0)
+        self._refresh_cx_table()
+        self._sync_main_ui()
 
     def _del_complexity(self):
         r = self.cx_table.currentRow()
-        if r < 0: return
-        item = self.session.query(ComplexityMultiplier).get(int(self.cx_table.item(r, 0).text()))
+        if r < 0:
+            return
+        item = self.session.query(ComplexityMultiplier).get(
+            int(self.cx_table.item(r, 0).text())
+        )
         if item:
-            self.session.delete(item); self.session.commit()
-            self._refresh_cx_table(); self._sync_main_ui()
+            self.session.delete(item)
+            self.session.commit()
+            self._refresh_cx_table()
+            self._sync_main_ui()
 
     def _add_pricing(self):
         name = self.ps_name.text().strip()
-        if not name: return
-        item = PricingStrategy(name=name, description=self.ps_desc.text().strip(),
-                               profit_margin_pct=self.ps_prof.value(), 
-                               risk_contingency_pct=self.ps_risk.value())
-        self.session.add(item); self.session.commit()
-        self.ps_name.clear(); self.ps_desc.clear(); self.ps_prof.setValue(0); self.ps_risk.setValue(0)
-        self._refresh_ps_table(); self._sync_main_ui()
+        if not name:
+            return
+        item = PricingStrategy(
+            name=name,
+            description=self.ps_desc.text().strip(),
+            profit_margin_pct=self.ps_prof.value(),
+            risk_contingency_pct=self.ps_risk.value(),
+        )
+        self.session.add(item)
+        self.session.commit()
+        self.ps_name.clear()
+        self.ps_desc.clear()
+        self.ps_prof.setValue(0)
+        self.ps_risk.setValue(0)
+        self._refresh_ps_table()
+        self._sync_main_ui()
 
     def _del_pricing(self):
         r = self.ps_table.currentRow()
-        if r < 0: return
-        item = self.session.query(PricingStrategy).get(int(self.ps_table.item(r, 0).text()))
+        if r < 0:
+            return
+        item = self.session.query(PricingStrategy).get(
+            int(self.ps_table.item(r, 0).text())
+        )
         if item:
-            self.session.delete(item); self.session.commit()
-            self._refresh_ps_table(); self._sync_main_ui()
+            self.session.delete(item)
+            self.session.commit()
+            self._refresh_ps_table()
+            self._sync_main_ui()
 
     def _add_preset(self):
         name = self.ip_name.text().strip()
-        if not name: return
+        if not name:
+            return
         item = IndustryPreset(name=name)
-        self.session.add(item); self.session.commit()
+        self.session.add(item)
+        self.session.commit()
         self.ip_name.clear()
-        self._refresh_ip_table(); self._sync_main_ui()
+        self._refresh_ip_table()
+        self._sync_main_ui()
 
     def _del_preset(self):
         r = self.ip_table.currentRow()
-        if r < 0: return
-        item = self.session.query(IndustryPreset).get(int(self.ip_table.item(r, 0).text()))
+        if r < 0:
+            return
+        item = self.session.query(IndustryPreset).get(
+            int(self.ip_table.item(r, 0).text())
+        )
         if item:
-            self.session.delete(item); self.session.commit()
-            self._refresh_ip_table(); self._sync_main_ui()
+            self.session.delete(item)
+            self.session.commit()
+            self._refresh_ip_table()
+            self._sync_main_ui()
 
     def _sync_main_ui(self):
         """Force the Master Tab combo boxes to refresh along with new Estimation dropdowns."""

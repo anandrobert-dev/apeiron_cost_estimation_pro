@@ -1,5 +1,5 @@
 """
-Apeiron CostEstimation Pro – Client Proposal Generator (Layer 2)
+Apeiron CostEstimation Pro – Client Proposal Generator (Utility)
 ================================================================
 Generates professional PDF proposals hiding internal costs.
 Uses ReportLab for PDF rendering.
@@ -7,16 +7,16 @@ Uses ReportLab for PDF rendering.
 
 import os
 from datetime import datetime
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm, cm
-from reportlab.lib.colors import HexColor
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
-from reportlab.platypus import (
+from reportlab.lib.pagesizes import A4  # type: ignore[import-untyped]
+from reportlab.lib.units import mm, cm  # type: ignore[import-untyped]
+from reportlab.lib.colors import HexColor  # type: ignore[import-untyped]
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import-untyped]
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT  # type: ignore[import-untyped]
+from reportlab.platypus import (  # type: ignore[import-untyped]
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
     PageBreak, HRFlowable
 )
-from app.logic import format_inr
+from app.utils.formatting import format_inr
 
 
 # ──────────────────────────────────────────────

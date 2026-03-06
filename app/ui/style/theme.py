@@ -29,19 +29,19 @@ THEMES = {
     "light": {
         "bg": "#f4f5f9",
         "surface": "#ffffff",
-        "card": "#ffffff",
-        "accent": "#3d5a99",
-        "accent_hover": "#2e4a80",
-        "success": "#27855a",
-        "warning": "#c07d20",
-        "danger": "#c0392b",
-        "text": "#2c3e50",
-        "text_secondary": "#7f8c8d",
-        "border": "#bdc3c7",  # Darkened border for visibility
-        "header_bg": "#3d5a99",
+        "card": "#f8f9fb",
+        "accent": "#1e3a8a",
+        "accent_hover": "#1e40af",
+        "success": "#16a34a",
+        "warning": "#d97706",
+        "danger": "#dc2626",
+        "text": "#1f2937",
+        "text_secondary": "#4b5563",
+        "border": "#9ca3af",
+        "header_bg": "#1e3a8a",
         "chart_bg": "#ffffff",
-        "chart_text": "#2c3e50",
-        "chart_palette": ["#3d5a99", "#27855a", "#c07d20", "#c0392b", "#8e44ad", "#2980b9", "#d35400", "#16a085"]
+        "chart_text": "#1f2937",
+        "chart_palette": ["#1e3a8a", "#16a34a", "#d97706", "#dc2626", "#7c3aed", "#0284c7", "#ea580c", "#059669"]
     },
 }
 
@@ -110,4 +110,12 @@ def build_stylesheet(theme_name: str = "dark") -> str:
     }}
     QScrollArea {{ border: none; background-color: transparent; }}
     QScrollArea > QWidget > QWidget {{ background-color: transparent; }}
+    QFrame[objectName="card"] {{
+        background-color: {t['card']}; border: 1px solid {t['border']};
+        border-radius: 8px; padding: 10px;
+    }}
+    QTextEdit {{
+        background-color: {t['card']}; border: 1px solid {t['border']};
+        color: {txt_color}; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 11px;
+    }}
     """

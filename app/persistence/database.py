@@ -7,7 +7,7 @@ SQLite initialization, session management, and seed data.
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import (
+from app.persistence.models import (
     Base, RegionMultiplier, SystemLookup, AppTypeMultiplier,
     ComplexityMultiplier, PricingStrategy, IndustryPreset, IndustryPresetModule
 )

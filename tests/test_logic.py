@@ -7,27 +7,29 @@ stage distribution, maintenance forecast, variance, formatting.
 
 import pytest
 from unittest.mock import MagicMock
-from app.logic import (
+from app.domain.cost_calculator import (
     compute_hourly_from_salary,
-    get_complexity_multiplier,
-    get_app_type_adjustment,
     calculate_module_cost,
-    calculate_total_labor_cost,
+    calculate_total_labor,
     calculate_total_hours,
     hours_to_person_months,
+)
+from app.domain.estimation_calculator import (
     calculate_stage_distribution,
     calculate_infra_stack_total,
     calculate_risk_buffer,
     calculate_final_price,
-    calculate_maintenance_forecast,
-    calculate_variance,
     cost_per_function_point,
     burn_rate_monthly,
     revenue_margin,
     contribution_margin,
-    format_inr,
-    run_full_estimation,
 )
+from app.domain.variance_calculator import calculate_variance
+from app.domain.maintenance_calculator import calculate_maintenance_forecast
+from app.domain.constants import DEFAULT_STAGES
+from app.utils.formatting import format_inr
+from app.persistence.repositories.multiplier_repository import MultiplierRepository
+from app.application.estimation_service import EstimationService
 
 
 # ──────────────────────────────────────────────
@@ -60,99 +62,62 @@ class TestEmployeeCost:
 
 
 # ──────────────────────────────────────────────
-# COMPLEXITY & APP TYPE
+# COMPLEXITY & APP TYPE (via MultiplierRepository)
 # ──────────────────────────────────────────────
 class TestMultipliers:
-    def _mock_session(self, multiplier_value):
+    def _make_repo(self, multiplier_value):
         session = MagicMock()
-        query = MagicMock()
-        record = MagicMock()
-        record.multiplier = multiplier_value
-        session.query.return_value = query
-        query.filter_by.return_value = query
-        query.first.return_value = record
-        return session
+        session.query.return_value.filter_by.return_value.first.return_value.multiplier = multiplier_value
+        return MultiplierRepository(session)
 
     def test_complexity_known(self):
-        session = self._mock_session(0.8)
-        assert get_complexity_multiplier(session, "Simple") == 0.8
+        repo = self._make_repo(0.8)
+        assert repo.get_complexity_multiplier("Simple") == 0.8
 
     def test_complexity_unknown(self):
         session = MagicMock()
-        session.query().filter_by().first.return_value = None
-        assert get_complexity_multiplier(session, "Unknown") == 1.0
+        session.query.return_value.filter_by.return_value.first.return_value = None
+        repo = MultiplierRepository(session)
+        assert repo.get_complexity_multiplier("Unknown") == 1.0
 
     def test_app_type_known(self):
-        session = self._mock_session(1.35)
-        assert get_app_type_adjustment(session, "AI") == 1.35
+        repo = self._make_repo(1.35)
+        assert repo.get_app_type_multiplier("AI") == 1.35
 
     def test_app_type_unknown(self):
         session = MagicMock()
-        session.query().filter_by().first.return_value = None
-        assert get_app_type_adjustment(session, "Unknown") == 1.0
+        session.query.return_value.filter_by.return_value.first.return_value = None
+        repo = MultiplierRepository(session)
+        assert repo.get_app_type_multiplier("Unknown") == 1.0
 
 
 # ──────────────────────────────────────────────
 # MODULE & LABOR COST
 # ──────────────────────────────────────────────
 class TestLaborCost:
-    def _mock_module(self, name="Module1", hours=100, hourly=500, override=None):
-        mod = MagicMock()
-        mod.name = name
-        mod.estimated_hours = hours
-        mod.hourly_rate_override = override
-        if override is None:
-            emp = MagicMock()
-            emp.hourly_cost = hourly
-            mod.employee = emp
-        else:
-            mod.employee = None
-        mod.cost = 0
-        return mod
-
     def test_module_cost_basic(self):
-        mod = self._mock_module(hours=100, hourly=500)
-        cost = calculate_module_cost(mod)
+        # hourly_rate=500, estimated_hours=100
+        cost = calculate_module_cost(hourly_rate=500, estimated_hours=100)
         assert cost == 50000.0
 
     def test_module_cost_with_region(self):
-        mod = self._mock_module(hours=100, hourly=500)
-        cost = calculate_module_cost(mod, region_multiplier=4.0)
+        cost = calculate_module_cost(hourly_rate=500, estimated_hours=100, region_multiplier=4.0)
         assert cost == 200000.0
 
     def test_module_cost_with_override(self):
-        mod = self._mock_module(hours=50, hourly=500, override=1000)
-        cost = calculate_module_cost(mod)
+        # override rate 1000 * 50 hours = 50000
+        cost = calculate_module_cost(hourly_rate=1000, estimated_hours=50)
         assert cost == 50000.0
 
-    def _mock_session(self, cx_mult, app_mult):
-        session = MagicMock()
-        def side_effect(model):
-            q = MagicMock()
-            rec = MagicMock()
-            if model.__name__ == 'ComplexityMultiplier':
-                rec.multiplier = cx_mult
-            else:
-                rec.multiplier = app_mult
-            q.filter_by.return_value.first.return_value = rec
-            return q
-        session.query.side_effect = side_effect
-        return session
-
     def test_total_labor_cost(self):
-        m1 = self._mock_module("A", 100, 500)
-        m2 = self._mock_module("B", 200, 300)
-        session = self._mock_session(1.0, 1.0)
-        result = calculate_total_labor_cost(session, [m1, m2], "Medium", "Productivity")
-        # raw = 50000 + 60000 = 110000, cx=1.0, app=1.0
+        # Module A: 100h * 500 = 50000, Module B: 200h * 300 = 60000
+        result = calculate_total_labor([50000.0, 60000.0], 1.0, 1.0)
         assert result["raw_labor_total"] == 110000.0
         assert result["adjusted_labor_total"] == 110000.0
 
     def test_total_labor_cost_complex_ai(self):
-        m1 = self._mock_module("A", 100, 500)
-        session = self._mock_session(1.3, 1.35)
-        result = calculate_total_labor_cost(session, [m1], "Complex", "AI")
         # raw = 50000, cx=1.3, app=1.35 → 50000 * 1.3 * 1.35 = 87750
+        result = calculate_total_labor([50000.0], 1.3, 1.35)
         assert result["adjusted_labor_total"] == pytest.approx(87750.0)
 
 
@@ -161,11 +126,7 @@ class TestLaborCost:
 # ──────────────────────────────────────────────
 class TestHours:
     def test_total_hours(self):
-        m1 = MagicMock()
-        m1.estimated_hours = 100
-        m2 = MagicMock()
-        m2.estimated_hours = 200
-        assert calculate_total_hours([m1, m2]) == 300
+        assert calculate_total_hours([100.0, 200.0]) == 300.0
 
     def test_person_months(self):
         assert hours_to_person_months(176) == 1.0
@@ -315,36 +276,23 @@ class TestCurrencyFormat:
 
 
 # ──────────────────────────────────────────────
-# FULL ESTIMATION PIPELINE
+# FULL ESTIMATION PIPELINE (via EstimationService)
 # ──────────────────────────────────────────────
 class TestFullEstimation:
-    def test_full_pipeline(self):
-        mod = MagicMock()
-        mod.name = "Core"
-        mod.estimated_hours = 200
-        mod.hourly_rate_override = None
-        emp = MagicMock()
-        emp.hourly_cost = 400
-        mod.employee = emp
-        mod.cost = 0
-
+    def _make_service(self):
         session = MagicMock()
-        def side_effect(model):
-            q = MagicMock()
-            rec = MagicMock()
-            rec.multiplier = 1.0
-            q.filter_by.return_value.first.return_value = rec
-            return q
-        session.query.side_effect = side_effect
-        
-        result = run_full_estimation(
-            session=session,
-            modules=[mod],
+        session.query.return_value.filter_by.return_value.first.return_value.multiplier = 1.0
+        return EstimationService(MultiplierRepository(session))
+
+    def test_full_pipeline(self):
+        service = self._make_service()
+        result = service.run_estimation(
+            modules=[{"name": "Core", "hourly_rate": 400.0, "estimated_hours": 200.0}],
             complexity="Medium",
             app_type="Productivity",
             region_multiplier=1.0,
-            infra_items=[],
-            stack_items=[],
+            infra_costs=[],
+            stack_costs=[],
             maintenance_buffer_pct=15,
             risk_contingency_pct=10,
             profit_margin_pct=20,

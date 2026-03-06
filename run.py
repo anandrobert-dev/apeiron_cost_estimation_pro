@@ -7,9 +7,9 @@ Launch the PyQt6 desktop application.
 
 import sys
 from PyQt6.QtWidgets import QApplication
-from app.database import init_database
-from app.main_ui import MainWindow
-from app.ui_theme import build_stylesheet
+from app.persistence.database import init_database
+from app.ui.main_window import MainWindow
+from app.ui.style.theme import build_stylesheet
 
 
 def main():

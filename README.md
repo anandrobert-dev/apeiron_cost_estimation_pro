@@ -27,9 +27,40 @@ A fully offline, desktop-based **Software Cost Estimation System** developed by 
 - **System Configuration UI** – A dedicated Master Data tab providing complete CRUD control over all multipliers and application parameters.
 - **Live Sync** – Dropdowns and estimation algorithms update in real-time when system models are altered.
 
+## Architecture (v2.0 – Clean 4-Layer)
+
+```
+app/
+├── domain/          # Pure business logic (no DB, no UI)
+│   ├── cost_calculator.py
+│   ├── estimation_calculator.py
+│   ├── variance_calculator.py
+│   ├── maintenance_calculator.py
+│   └── constants.py
+├── persistence/     # Data access (ORM models + repositories)
+│   ├── models.py
+│   ├── database.py
+│   └── repositories/
+├── application/     # Service orchestration (domain + persistence)
+│   ├── estimation_service.py
+│   ├── employee_service.py
+│   ├── project_service.py
+│   ├── analytics_service.py
+│   ├── pricing_service.py
+│   └── export_service.py
+├── ui/              # PyQt6 presentation layer
+│   ├── main_window.py
+│   ├── tabs/
+│   ├── components/
+│   └── style/
+└── utils/           # Shared helpers (formatting, validation, exceptions)
+```
+
+Dependency flow: **UI → Application → {Domain, Persistence}**. Domain has zero external dependencies.
+
 ## Requirements
 
-- **OS**: Ubuntu 24.04 (or any Linux with Python 3.11+)
+- **OS**: Windows / Ubuntu / macOS
 - **Python**: 3.11+
 
 ## Setup & Installation
@@ -39,8 +70,9 @@ A fully offline, desktop-based **Software Cost Estimation System** developed by 
 cd apeiron_cost_estimation_pro
 
 # 2. Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
 
 # 3. Install dependencies
 pip install -r requirements.txt
@@ -59,11 +91,17 @@ python3 run.py
 
 ## Run Tests
 
-The application includes a comprehensive Pytest suite mocking the database to verify financial integrity.
+The application includes a comprehensive Pytest suite with 133 tests covering domain logic, persistence repositories, application services, and backward compatibility.
 
 ```bash
 python3 -m pytest tests/ -v
 ```
+
+Test layers:
+- `tests/domain/` – Pure domain calculator tests (no DB)
+- `tests/persistence/` – Repository tests (in-memory SQLite)
+- `tests/application/` – Service tests (real repos, in-memory DB)
+- `tests/test_logic.py` – Backward-compat shim tests (original 38 tests)
 
 ## License
 
